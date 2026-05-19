@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocVerify Chain</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0D1B2A;
+      --teal:   #0A9396;
+      --mint:   #94D2BD;
+      --white:  #FFFFFF;
+      --light:  #F4F6F8;
+      --muted:  #64748B;
+      --border: #E2E8F0;
+      --card:   #FFFFFF;
+      --success:#16A34A;
+      --danger: #DC2626;
+      --warning:#D97706;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--light);
+      color: var(--navy);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ── */
+    nav {
+      background: var(--navy);
+      padding: 0 28px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand { color: #fff; font-weight: 700; font-size: 17px; }
+    .nav-brand span { color: var(--mint); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      padding: 6px 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all .15s;
+    }
+    .nav-btn:hover, .nav-btn.active { background: #1E293B; color: #fff; }
+    .nav-user { font-size: 13px; color: #94A3B8; }
+
+    /* ── Pages ── */
+    .page { display: none; max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+    .page.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; color: var(--muted); }
+    input[type=text], input[type=email], input[type=password] {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; outline: none; transition: border .15s;
+    }
+    input:focus { border-color: var(--teal); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s;
+    }
+    .btn-primary { background: var(--teal); color: #fff; }
+    .btn-primary:hover { background: #0F6E56; }
+    .btn-outline { background: transparent; color: var(--teal); border: 1.5px solid var(--teal); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-full { width: 100%; justify-content: center; margin-top: 6px; }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: 11px 14px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 14px;
+    }
+    .alert-success { background: #DCFCE7; color: #166534; }
+    .alert-error   { background: #FEE2E2; color: #991B1B; }
+    .alert-info    { background: #DBEAFE; color: #1E40AF; }
+    .alert-warning { background: #FEF9C3; color: #854D0E; }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 99px; font-size: 12px; font-weight: 500;
+    }
+    .badge-success { background: #DCFCE7; color: #166534; }
+    .badge-warning { background: #FEF9C3; color: #854D0E; }
+    .badge-danger  { background: #FEE2E2; color: #991B1B; }
+    .badge-muted   { background: #F1F5F9; color: #475569; }
+
+    /* ── Drop zone ── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px; padding: 36px 20px;
+      text-align: center; cursor: pointer;
+      transition: all .2s; background: #F8FAFC;
+    }
+    .dropzone:hover, .dropzone.over { border-color: var(--teal); background: #F0FDFA; }
+    .dropzone-icon { font-size: 36px; margin-bottom: 8px; }
+    .dropzone p { color: var(--muted); font-size: 14px; }
+
+    /* ── Hash display ── */
+    .hash-box {
+      font-family: monospace; font-size: 12px;
+      background: #F8FAFC; border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 12px;
+      word-break: break-all; color: #334155;
+      margin-top: 6px;
+    }
+
+    /* ── Stats grid ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 18px; text-align: center; }
+    .stat-num { font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 12px; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); background: #F8FAFC; }
+    td { padding: 11px 12px; border-bottom: 1px solid #F1F5F9; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Auth wrapper ── */
+    .auth-wrap {
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center; background: var(--light);
+    }
+    .auth-box { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 36px; width: 400px; }
+    .auth-logo { text-align: center; margin-bottom: 24px; }
+    .auth-logo h1 { font-size: 22px; font-weight: 700; }
+    .auth-logo p  { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .auth-switch  { text-align: center; font-size: 13px; color: var(--muted); margin-top: 18px; }
+    .auth-switch a { color: var(--teal); cursor: pointer; text-decoration: none; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <h1>🔐 DocVerify Chain</h1>
+        <p>Blockchain Document Verification</p>
+      </div>
+      <div id="auth-alert"></div>
+
+      <!-- Login Form -->
+      <div id="login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-pass" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
+        <div class="auth-switch">Don't have an account? <a onclick="showRegister()">Register</a></div>
+        <div class="auth-switch" style="margin-top:8px"><a onclick="showVerifyPublic()">Verify a document without logging in →</a></div>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" style="display:none">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-pass" placeholder="Min 6 characters" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doRegister()">Create Account</button>
+        <div class="auth-switch">Already registered? <a onclick="showLogin()">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP SCREEN ═══════════════ -->
+<div id="app-screen" style="display:none">
+  <nav>
+    <span class="nav-brand">🔐 DocVerify <span>Chain</span></span>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-btn" onclick="showPage('upload')">Upload</button>
+      <button class="nav-btn" onclick="showPage('verify')">Verify</button>
+      <button class="nav-btn" id="admin-nav-btn" style="display:none" onclick="showPage('admin')">Admin</button>
+    </div>
+    <span class="nav-user" id="nav-user-email"></span>
+    &nbsp;
+    <button class="nav-btn" onclick="logout()">Logout</button>
+  </nav>
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dashboard">
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Dashboard</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Your document verification history</p>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-total" style="color:#2563EB">0</div><div class="stat-label">Total Documents</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-verified" style="color:#16A34A">0</div><div class="stat-label">Verified</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-flagged" style="color:#D97706">0</div><div class="stat-label">Flagged</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-rejected" style="color:#DC2626">0</div><div class="stat-label">Rejected</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:600">My Documents</span>
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:13px" onclick="showPage('upload')">+ Upload</button>
+      </div>
+      <div id="docs-table-wrap">
+        <div style="padding:40px;text-align:center;color:var(--muted)">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="page" id="page-upload">
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Upload Document</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Register your document on the blockchain</p>
+    <div class="card">
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()"
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" id="file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx" onchange="fileSelected(this.files[0])" />
+        <div class="dropzone-icon" id="dz-icon">📂</div>
+        <p id="dz-text">Drag & drop a file here, or click to browse</p>
+        <p style="font-size:12px;margin-top:6px;color:#94A3B8">PDF, DOCX, PNG, JPG · max 10 MB</p>
+      </div>
+      <div id="upload-alert" style="margin-top:14px"></div>
+      <button class="btn btn-primary btn-full" id="upload-btn" style="margin-top:14px;padding:13px" onclick="doUpload()" disabled>
+        🔒 Register on Blockchain
+      </button>
+    </div>
+    <div class="card" id="upload-result" style="display:none;border-left:4px solid var(--teal)">
+      <div class="card-title" id="result-title"></div>
+      <div style="margin-bottom:10px">
+        <label>SHA-256 Document Hash</label>
+        <div class="hash-box" id="result-hash"></div>
+      </div>
+      <div style="margin-bottom:10px" id="result-tx-wrap">
+        <label>Blockchain Transaction Hash</label>
+        <div class="hash-box" id="result-tx"></div>
+      </div>
+      <div style="display:flex;gap:20px">
+        <div><label>Fraud Score</label><div id="result-fraud" style="font-weight:600;font-size:15px"></div></div>
+        <div><label>Status</label><div id="result-status"></div></div>
+      </div>
+      <div class="alert alert-info" style="margin-top:14px;margin-bottom:0">
+        Save the hash above — anyone can use it on the Verify page to confirm authenticity.
+      </div>
+    </div>
+  </div>
+
+  <!-- Verify -->
+  <div class="page" id="page-verify">
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Verify Document</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Check if a document is authentic on the blockchain</p>
+    <div class="card">
+      <div class="form-group">
+        <label>Paste SHA-256 Hash (64 characters)</label>
+        <input type="text" id="verify-hash" placeholder="e.g. a3f5c7...8d2e1b (64 hex characters)" style="font-family:monospace;font-size:13px" />
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Or upload the document to compute its hash automatically:</p>
+      <div class="dropzone" id="verify-dropzone" onclick="document.getElementById('verify-file').click()"
+           ondragover="handleDragOver2(event)" ondragleave="handleDragLeave2(event)" ondrop="handleDrop2(event)">
+        <input type="file" id="verify-file" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.docx" onchange="computeVerifyHash(this.files[0])" />
+        <p id="verify-dz-text" style="font-size:13px">Click or drag file to compute hash locally</p>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:14px;padding:13px" onclick="doVerify()">🔍 Verify on Blockchain</button>
+    </div>
+    <div class="card" id="verify-result" style="display:none">
+      <div class="card-title" id="verify-result-title"></div>
+      <div id="verify-result-body"></div>
+    </div>
+  </div>
+
+  <!-- Admin -->
+  <div class="page" id="page-admin">
+    <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Admin Panel</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Manage documents and review flagged items</p>
+    <div class="stats-grid" id="admin-stats-grid"></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px">
+        <button class="btn btn-outline" style="padding:5px 13px;font-size:12px" onclick="loadAdminDocs('')">All</button>
+        <button class="btn btn-outline" style="padding:5px 13px;font-size:12px" onclick="loadAdminDocs('flagged')">Flagged</button>
+        <button class="btn btn-outline" style="padding:5px 13px;font-size:12px" onclick="loadAdminDocs('verified')">Verified</button>
+        <button class="btn btn-outline" style="padding:5px 13px;font-size:12px" onclick="loadAdminDocs('rejected')">Rejected</button>
+      </div>
+      <div id="admin-table-wrap">
+        <div style="padding:40px;text-align:center;color:var(--muted)">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PUBLIC VERIFY (no login) ═══════════════ -->
+<div id="public-verify-screen" style="display:none;min-height:100vh;background:var(--light)">
+  <div style="max-width:600px;margin:0 auto;padding:60px 20px;text-align:center">
+    <h1 style="font-size:24px;margin-bottom:8px">🔍 Verify Document</h1>
+    <p style="color:var(--muted);margin-bottom:28px">No login required — public verification via blockchain</p>
+    <div class="card" style="text-align:left">
+      <div class="form-group">
+        <label>SHA-256 Hash (64 characters)</label>
+        <input type="text" id="pub-verify-hash" placeholder="Paste document hash here..." style="font-family:monospace;font-size:12px" />
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doPublicVerify()">Verify on Blockchain</button>
+      <div id="pub-verify-result" style="margin-top:16px"></div>
+    </div>
+    <p style="margin-top:20px;font-size:13px;color:var(--muted)"><a onclick="showLogin()" style="color:var(--teal);cursor:pointer">← Back to login</a></p>
+  </div>
+</div>
+
+<script>
+// Empty string = relative URLs, works when served from Flask at http://127.0.0.1:5000
+const API = "";
+let currentUser = null;
+let selectedFile = null;
+
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+function getToken() { return localStorage.getItem("dv_token"); }
+function setToken(t) { localStorage.setItem("dv_token", t); }
+function clearToken() { localStorage.removeItem("dv_token"); }
+
+async function api(path, opts = {}) {
+  const token = getToken();
+  const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  if (token) headers["Authorization"] = "Bearer " + token;
+  if (opts.body instanceof FormData) delete headers["Content-Type"];
+  const res = await fetch(API + path, { ...opts, headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Request failed");
+  return data;
+}
+
+// ── Auth screen toggles ───────────────────────────────────────────────────────
+function showLogin()    { document.getElementById("login-form").style.display=""; document.getElementById("register-form").style.display="none"; document.getElementById("auth-alert").innerHTML=""; }
+function showRegister() { document.getElementById("register-form").style.display=""; document.getElementById("login-form").style.display="none"; document.getElementById("auth-alert").innerHTML=""; }
+function showVerifyPublic() { document.getElementById("auth-screen").style.display="none"; document.getElementById("public-verify-screen").style.display=""; }
+
+function setAuthAlert(msg, type="error") {
+  document.getElementById("auth-alert").innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+async function doLogin() {
+  const email = document.getElementById("login-email").value.trim();
+  const pass  = document.getElementById("login-pass").value;
+  try {
+    const res = await api("/api/auth/login", { method:"POST", body:JSON.stringify({email, password:pass}) });
+    setToken(res.token);
+    currentUser = res;
+    enterApp();
+  } catch(e) { setAuthAlert(e.message); }
+}
+
+async function doRegister() {
+  const name  = document.getElementById("reg-name").value.trim();
+  const email = document.getElementById("reg-email").value.trim();
+  const pass  = document.getElementById("reg-pass").value;
+  try {
+    const res = await api("/api/auth/register", { method:"POST", body:JSON.stringify({email, password:pass, full_name:name}) });
+    setToken(res.token);
+    currentUser = res;
+    enterApp();
+  } catch(e) { setAuthAlert(e.message); }
+}
+
+function logout() {
+  clearToken(); currentUser=null;
+  document.getElementById("app-screen").style.display="none";
+  document.getElementById("auth-screen").style.display="";
+  showLogin();
+}
+
+// ── App enter ─────────────────────────────────────────────────────────────────
+function enterApp() {
+  document.getElementById("auth-screen").style.display="none";
+  document.getElementById("public-verify-screen").style.display="none";
+  document.getElementById("app-screen").style.display="";
+  document.getElementById("nav-user-email").textContent = currentUser.email;
+  if (currentUser.role === "admin") document.getElementById("admin-nav-btn").style.display="";
+  showPage("dashboard");
+}
+
+// ── Page navigation ───────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  event && event.target && event.target.classList.add("active");
+  if (name === "dashboard") loadDashboard();
+  if (name === "admin") { loadAdminStats(); loadAdminDocs(""); }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const docs = await api("/api/docs/my");
+    document.getElementById("stat-total").textContent    = docs.length;
+    document.getElementById("stat-verified").textContent = docs.filter(d=>d.status==="verified").length;
+    document.getElementById("stat-flagged").textContent  = docs.filter(d=>d.status==="flagged").length;
+    document.getElementById("stat-rejected").textContent = docs.filter(d=>d.status==="rejected").length;
+    renderDocsTable(docs, "docs-table-wrap");
+  } catch(e) { document.getElementById("docs-table-wrap").innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted)">${e.message}</div>`; }
+}
+
+function statusBadge(s) {
+  const map = {verified:"success",flagged:"warning",rejected:"danger",pending:"muted"};
+  return `<span class="badge badge-${map[s]||"muted"}">${s}</span>`;
+}
+
+function renderDocsTable(docs, wrapperId) {
+  const el = document.getElementById(wrapperId);
+  if (!docs.length) { el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">No documents yet.</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Filename</th><th>Hash</th><th>Status</th><th>Fraud Score</th><th>Date</th></tr></thead><tbody>`
+    + docs.map(d => `<tr>
+      <td style="font-weight:500">${d.filename}</td>
+      <td><span style="font-family:monospace;font-size:11px;color:#475569">${d.doc_hash.slice(0,18)}...</span></td>
+      <td>${statusBadge(d.status)}</td>
+      <td style="font-weight:600;color:${d.fraud_score>=0.7?'#DC2626':d.fraud_score>=0.3?'#D97706':'#16A34A'}">${Math.round(d.fraud_score*100)}%</td>
+      <td style="color:var(--muted)">${d.created_at?.slice(0,10)}</td>
+    </tr>`).join("") + `</tbody></table>`;
+}
+
+// ── Upload ─────────────────────────────────────────────────────────────────────
+function handleDragOver(e)  { e.preventDefault(); document.getElementById("dropzone").classList.add("over"); }
+function handleDragLeave(e) { document.getElementById("dropzone").classList.remove("over"); }
+function handleDrop(e) {
+  e.preventDefault(); handleDragLeave(e);
+  const file = e.dataTransfer.files[0];
+  if (!file) {
+    document.getElementById("upload-alert").innerHTML =
+      '<div class="alert alert-error">Folders are not supported. Please drop a single PDF, DOCX, PNG, or JPG file.</div>';
+    return;
+  }
+  fileSelected(file);
+}
+
+function fileSelected(file) {
+  selectedFile = file;
+  document.getElementById("dz-icon").textContent = "✅";
+  document.getElementById("dz-text").textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  document.getElementById("upload-btn").disabled = false;
+  document.getElementById("upload-result").style.display = "none";
+  document.getElementById("upload-alert").innerHTML = "";
+}
+
+async function doUpload() {
+  if (!selectedFile) return;
+
+  const token = getToken();
+  if (!token) {
+    document.getElementById("upload-alert").innerHTML =
+      '<div class="alert alert-error">Session expired — please <a onclick="logout()" style="cursor:pointer;text-decoration:underline">log in again</a>.</div>';
+    return;
+  }
+
+  const btn = document.getElementById("upload-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Hashing & registering on blockchain...';
+  document.getElementById("upload-alert").innerHTML = "";
+  document.getElementById("upload-result").style.display = "none";
+
+  const form = new FormData();
+  form.append("file", selectedFile);
+  try {
+    const res = await fetch(API + "/api/docs/upload", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + token },
+      body: form,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    const colors = { verified:"#16A34A", flagged:"#D97706", rejected:"#DC2626", pending:"#64748B" };
+    const titles = { verified:"✅ Registered Successfully", flagged:"⚠️ Flagged for Review", rejected:"❌ Document Rejected", pending:"⏳ Pending Registration" };
+    document.getElementById("upload-result").style.display = "";
+    document.getElementById("upload-result").style.borderLeftColor = colors[data.status]||"#64748B";
+    document.getElementById("result-title").textContent = titles[data.status]||data.status;
+    document.getElementById("result-hash").textContent  = data.hash;
+    document.getElementById("result-tx").textContent    = data.tx_hash || "Not registered on chain";
+    document.getElementById("result-fraud").textContent = data.fraud_score + "% risk";
+    document.getElementById("result-fraud").style.color = data.fraud_score>=70?"#DC2626":data.fraud_score>=30?"#D97706":"#16A34A";
+    document.getElementById("result-status").innerHTML  = statusBadge(data.status);
+
+    document.getElementById("dz-icon").textContent = "📂";
+    document.getElementById("dz-text").textContent = "Drag & drop a file here, or click to browse";
+    selectedFile = null;
+  } catch(e) {
+    document.getElementById("upload-alert").innerHTML = `<div class="alert alert-error">${e.message}</div>`;
+  }
+  btn.disabled = false;
+  btn.innerHTML = "🔒 Register on Blockchain";
+}
+
+// ── Verify ─────────────────────────────────────────────────────────────────────
+function handleDragOver2(e)  { e.preventDefault(); document.getElementById("verify-dropzone").classList.add("over"); }
+function handleDragLeave2(e) { document.getElementById("verify-dropzone").classList.remove("over"); }
+function handleDrop2(e)      { e.preventDefault(); handleDragLeave2(e); if(e.dataTransfer.files[0]) computeVerifyHash(e.dataTransfer.files[0]); }
+
+async function computeVerifyHash(file) {
+  const buf  = await file.arrayBuffer();
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  const hex  = Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  document.getElementById("verify-hash").value = hex;
+  document.getElementById("verify-dz-text").textContent = `Hash computed from: ${file.name}`;
+}
+
+async function doVerify() {
+  const hash = document.getElementById("verify-hash").value.trim();
+  if (hash.length !== 64) { alert("Please enter a valid 64-character SHA-256 hash."); return; }
+  try {
+    const data = await api(`/api/docs/verify/${hash}`);
+    showVerifyResult(data);
+  } catch(e) { alert(e.message); }
+}
+
+function showVerifyResult(data) {
+  const el = document.getElementById("verify-result");
+  el.style.display = "";
+  el.style.borderLeft = data.found ? "4px solid #16A34A" : "4px solid #DC2626";
+
+  const source = data.blockchain_used ? "blockchain" : "database";
+  const sourceNote = data.blockchain_used
+    ? "Verified directly against the Ethereum blockchain."
+    : "⚠️ Blockchain node offline — verified against local database instead.";
+
+  document.getElementById("verify-result-title").textContent = data.found
+    ? "✅ Document is AUTHENTIC"
+    : `❌ Document NOT Found (${source})`;
+
+  if (data.found) {
+    const ts = data.timestamp ? new Date(data.timestamp*1000).toLocaleString() : "—";
+    document.getElementById("verify-result-body").innerHTML = `
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">${sourceNote}</p>
+      <div class="form-group"><label>Hash</label><div class="hash-box">${data.hash}</div></div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div class="form-group"><label>Filename</label><div style="font-size:14px">${data.filename||"—"}</div></div>
+        <div class="form-group"><label>Status</label><div style="font-size:14px">${data.status||"—"}</div></div>
+        ${data.timestamp ? `<div class="form-group"><label>Registered At</label><div style="font-size:14px">${ts}</div></div>` : ""}
+      </div>`;
+  } else {
+    document.getElementById("verify-result-body").innerHTML = `
+      <p style="color:var(--muted);font-size:13px">${sourceNote}</p>
+      <p style="color:var(--muted);font-size:13px;margin-top:8px">This hash was not found. The document was never registered, or it has been <strong>modified since registration</strong>.</p>`;
+  }
+}
+
+// ── Public verify ─────────────────────────────────────────────────────────────
+async function doPublicVerify() {
+  const hash = document.getElementById("pub-verify-hash").value.trim();
+  if (hash.length !== 64) { alert("Enter a valid 64-character hash."); return; }
+  try {
+    const res  = await fetch(`${API}/api/docs/verify/${hash}`);
+    const data = await res.json();
+    const el   = document.getElementById("pub-verify-result");
+    if (data.found) {
+      const ts = data.timestamp ? new Date(data.timestamp*1000).toLocaleString() : "—";
+      el.innerHTML = `<div class="alert alert-success">✅ Document is AUTHENTIC<br><small>Registered: ${ts}</small></div>`;
+    } else {
+      el.innerHTML = `<div class="alert alert-error">❌ Document NOT found on blockchain</div>`;
+    }
+  } catch(e) { document.getElementById("pub-verify-result").innerHTML=`<div class="alert alert-error">${e.message}</div>`; }
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+async function loadAdminStats() {
+  try {
+    const s = await api("/api/admin/stats");
+    document.getElementById("admin-stats-grid").innerHTML = `
+      <div class="stat-card"><div class="stat-num" style="color:#2563EB">${s.total_documents}</div><div class="stat-label">Total Docs</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#16A34A">${s.verified}</div><div class="stat-label">Verified</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#D97706">${s.flagged}</div><div class="stat-label">Flagged</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#DC2626">${s.rejected}</div><div class="stat-label">Rejected</div></div>`;
+  } catch(e){}
+}
+
+async function loadAdminDocs(status) {
+  const wrap = document.getElementById("admin-table-wrap");
+  wrap.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted)">Loading...</div>';
+  try {
+    const docs = await api(`/api/admin/documents${status?"?status="+status:""}`);
+    if (!docs.length) { wrap.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">No documents found.</div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Filename</th><th>Hash</th><th>Status</th><th>Fraud</th><th>Actions</th></tr></thead><tbody>`
+      + docs.map(d => `<tr>
+        <td style="font-weight:500">${d.filename}</td>
+        <td><span style="font-family:monospace;font-size:11px">${d.doc_hash.slice(0,16)}...</span></td>
+        <td>${statusBadge(d.status)}</td>
+        <td style="font-weight:600;color:${d.fraud_score>=0.7?"#DC2626":d.fraud_score>=0.3?"#D97706":"#16A34A"}">${Math.round(d.fraud_score*100)}%</td>
+        <td>
+          ${d.status!=="verified" ? `<button class="btn btn-outline" style="padding:3px 10px;font-size:11px" onclick="adminSetStatus(${d.id},'verified')">Approve</button>` : ""}
+          ${d.status!=="rejected" ? `<button class="btn" style="padding:3px 10px;font-size:11px;background:#FEE2E2;color:#991B1B;border:none" onclick="adminSetStatus(${d.id},'rejected')">Reject</button>` : ""}
+        </td>
+      </tr>`).join("") + `</tbody></table>`;
+  } catch(e) { wrap.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted)">${e.message}</div>`; }
+}
+
+async function adminSetStatus(id, status) {
+  try {
+    await api(`/api/admin/documents/${id}/status?status=${status}`, { method:"PATCH" });
+    loadAdminDocs("");
+  } catch(e) { alert(e.message); }
+}
+
+// ── Auto-login on refresh ─────────────────────────────────────────────────────
+(async () => {
+  const token = getToken();
+  if (token) {
+    try {
+      currentUser = await api("/api/auth/me");
+      enterApp();
+    } catch(e) {
+      // Clear the token only when the server explicitly rejects it (expired/invalid).
+      // Keep it on network errors so a page refresh after the server is back works.
+      if (e.message === "Not authenticated") {
+        clearToken();
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
